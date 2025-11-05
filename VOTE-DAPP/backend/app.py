@@ -1,37 +1,36 @@
+
+
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import os
 import random
-import smtplib
 import sqlite3
+import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
 
-# ==========================================
-# Configure Flask with external templates/static
-# ==========================================
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app = Flask(
-    __name__,
-    template_folder=os.path.join(BASE_DIR, "../templates"),
-    static_folder=os.path.join(BASE_DIR, "../static")
-)
+# =========================
+# LOAD ENVIRONMENT VARIABLES
+# =========================
+load_dotenv()
+
+# ✅ Define template & static paths
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+# ✅ Initialize Flask app
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.secret_key = "votechori_secret"
 
-# =========================
-# DATABASE CONFIG (SQLite)
-# =========================
+# ✅ SQLite Configuration
 DB_PATH = os.path.join(BASE_DIR, "votechori.db")
 
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 def init_db():
-    conn = get_db_connection()
+    """Initialize SQLite database if not exists"""
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-
-    # Create users table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,30 +40,21 @@ def init_db():
             has_voted INTEGER DEFAULT 0
         )
     """)
-
-    # Create votes_history table
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS votes_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            wallet_address TEXT,
-            party_name TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
     conn.commit()
-    cur.close()
     conn.close()
 
+
 # =========================
-# EMAIL OTP CONFIG
+# GMAIL OTP CONFIGURATION
 # =========================
-SENDER_EMAIL = "riteshhonule@gmail.com"
-SENDER_PASSWORD = "abrr osvc rjsp xkci"
+SENDER_EMAIL = os.getenv("EMAIL_USER", "riteshhonule@gmail.com")
+SENDER_PASSWORD = os.getenv("EMAIL_PASS", "abrr osvc rjsp xkci")  # Use Gmail App Password
 
 otp_storage = {}
 
+
 def send_otp(email):
+    """Generate and send OTP via Gmail SMTP"""
     otp = str(random.randint(100000, 999999))
     otp_storage[email] = otp
 
@@ -89,15 +79,21 @@ def send_otp(email):
 
     return otp
 
+
 def verify_aadhaar(aadhaar_number):
+    """Simple Aadhaar number validation"""
     return aadhaar_number.isdigit() and len(aadhaar_number) == 12
+
 
 # =========================
 # ROUTES
 # =========================
+
 @app.route("/")
 def index():
+    """Home page for Aadhaar verification"""
     return render_template("index.html")
+
 
 @app.route("/verify_aadhaar", methods=["POST"])
 def verify_aadhaar_route():
@@ -110,78 +106,82 @@ def verify_aadhaar_route():
         session["aadhaar"] = aadhaar
         session["email"] = email
         return redirect(url_for("otp_page"))
-    return "❌ Invalid Aadhaar number"
+
+    # ❌ Invalid Aadhaar — show styled error page
+    return render_template("error.html")
+
 
 @app.route("/otp")
 def otp_page():
+    """Step 2: OTP input page"""
     return render_template("otp.html")
+
 
 @app.route("/verify_otp", methods=["POST"])
 def verify_otp():
+    """Step 3: Verify OTP and save user"""
     entered_otp = request.form["otp"]
 
     if entered_otp == session.get("otp"):
         try:
-            conn = get_db_connection()
+            conn = sqlite3.connect(DB_PATH)
             cur = conn.cursor()
-            cur.execute("""
-                INSERT OR IGNORE INTO users (aadhaar, email)
-                VALUES (?, ?)
-            """, (session["aadhaar"], session["email"]))
+            cur.execute(
+                "INSERT OR IGNORE INTO users (aadhaar, email) VALUES (?, ?)",
+                (session["aadhaar"], session["email"]),
+            )
             conn.commit()
-            cur.close()
             conn.close()
         except Exception as e:
             print(f"⚠️ Database Error: {e}")
             return "⚠️ Database error. Please try again."
 
         return redirect(url_for("wallet"))
-    return "❌ Invalid OTP"
+
+    return render_template("error.html", message="❌ Invalid OTP. Please try again.")
+
 
 @app.route("/wallet")
 def wallet():
+    """Step 4: Wallet connection page"""
     return render_template("wallet.html")
+
 
 @app.route("/save_wallet", methods=["POST"])
 def save_wallet():
+    """Save wallet address to user record"""
     wallet = request.json.get("wallet")
     email = session.get("email")
 
-    conn = get_db_connection()
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("UPDATE users SET wallet_address=? WHERE email=?", (wallet, email))
     conn.commit()
-    cur.close()
     conn.close()
     return jsonify({"message": "✅ Wallet saved successfully!"})
 
+
 @app.route("/vote")
 def vote():
+    """Step 5: Voting page"""
     return render_template("vote.html")
+
 
 @app.route("/mark_voted", methods=["POST"])
 def mark_voted():
-    data = request.get_json()
-    wallet = data.get("wallet")
-    party_name = data.get("party_name")
-
-    conn = get_db_connection()
+    """Mark user as voted"""
+    wallet = request.json.get("wallet")
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-
-    # Mark user as voted
     cur.execute("UPDATE users SET has_voted=1 WHERE wallet_address=?", (wallet,))
-
-    # Record vote history
-    cur.execute("""
-        INSERT INTO votes_history (wallet_address, party_name)
-        VALUES (?, ?)
-    """, (wallet, party_name))
-
     conn.commit()
-    cur.close()
     conn.close()
-    return jsonify({"message": f"✅ Vote recorded for {party_name}!"})
+    return jsonify({"message": "✅ Vote marked in database!"})
 
+
+# =========================
+# MAIN
+# =========================
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
