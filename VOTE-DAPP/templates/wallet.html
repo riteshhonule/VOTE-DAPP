@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Connect Wallet</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.6.1/web3.min.js"></script>
+</head>
+<body>
+  <div class="form-container">
+    <h1>🔗 Connect MetaMask</h1>
+    <button id="connectWalletBtn">Connect Wallet</button>
+    <p id="walletAddress"></p>
+  </div>
+
+  <script>
+    document.getElementById("connectWalletBtn").addEventListener("click", async () => {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const wallet = accounts[0];
+        document.getElementById("walletAddress").innerText = "Connected: " + wallet;
+
+        await fetch("/save_wallet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet })
+        });
+
+        setTimeout(() => window.location.href = "/vote", 1000);
+      } else {
+        alert("Install MetaMask!");
+      }
+    });
+  </script>
+</body>
+</html>

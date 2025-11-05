@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Vote Portal - Cast Your Vote</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.6.1/web3.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #020617, #1e3a8a);
+      color: #E0E7FF;
+      min-height: 100vh;
+      padding-top: 50px;
+    }
+
+    h1 {
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #4b19ff, #1de0a9, #F472B6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 15px rgba(167, 139, 250, 0.3);
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+
+   
+
+    #partiesContainer {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .party-card {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      padding: 20px;
+      border-radius: 12px;
+      width: 220px;
+      transition: 0.3s;
+    }
+
+    .party-card:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .party-card img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+      border: 2px solid #60A5FA;
+      transition: 0.3s;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .party-card img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+    }
+
+    button {
+      background: linear-gradient(90deg, #3B82F6, #2563EB);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #60A5FA, #3B82F6);
+    }
+
+    #resultMessage {
+      margin-top: 30px;
+      font-weight: bold;
+      color: #A5B4FC;
+      font-size: 1.1rem;
+    }
+
+    #loading {
+      margin-top: 20px;
+      color: #93C5FD;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🗳️ Cast Your Vote</h1>
+  <div id="partiesContainer"></div>
+  <p id="loading"></p>
+  <p id="resultMessage"></p>
+
+  <script>
+    const contractABI = [
+      {
+        inputs: [],
+        stateMutability: "nonpayable",
+        type: "constructor",
+      },
+      {
+        inputs: [],
+        name: "getAllVotes",
+        outputs: [
+          {
+            components: [
+              { internalType: "string", name: "name", type: "string" },
+              { internalType: "uint256", name: "votes", type: "uint256" },
+            ],
+            internalType: "struct VoteChoriPrevention.Party[]",
+            name: "",
+            type: "tuple[]",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
+      },
+      {
+        inputs: [
+          { internalType: "uint256", name: "_partyIndex", type: "uint256" },
+        ],
+        name: "vote",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const contractAddress = "0x192cAC1D5e9f4ef35DAd644A88C501AF3774E4C7";
+    let web3, contract, wallet;
+
+    window.addEventListener("load", async () => {
+      if (typeof window.ethereum === "undefined") {
+        alert("⚠️ Please install MetaMask!");
+        return;
+      }
+
+      web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
+      const accounts = await web3.eth.getAccounts();
+      wallet = accounts[0];
+      contract = new web3.eth.Contract(contractABI, contractAddress);
+      loadParties();
+    });
+
+    async function loadParties() {
+      try {
+        const parties = await contract.methods.getAllVotes().call();
+        const container = document.getElementById("partiesContainer");
+        container.innerHTML = "";
+
+        parties.forEach((party, index) => {
+          const div = document.createElement("div");
+          div.className = "party-card";
+
+          // ✅ Correct relative path (img folder is now inside static)
+          let imagePath = "/static/img/default.png";
+          if (party.name.toLowerCase().includes("bjp")) imagePath = "/static/img/bjp.png";
+          else if (party.name.toLowerCase().includes("congress")) imagePath = "/static/img/congress.png";
+          else if (party.name.toLowerCase().includes("aam") || party.name.toLowerCase().includes("aadmi")) imagePath = "/static/img/aap.png";
+
+          div.innerHTML = `
+            <img src="${imagePath}" alt="${party.name} Logo" />
+            <h2>${party.name}</h2>
+            <p>Votes: ${party.votes}</p>
+            <button id="btn-${index}" onclick="vote(${index}, '${party.name}')">Vote</button>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Error loading parties:", err);
+      }
+    }
+
+    async function vote(index, partyName) {
+      const loading = document.getElementById("loading");
+      const result = document.getElementById("resultMessage");
+      const button = document.getElementById(`btn-${index}`);
+
+      try {
+        button.disabled = true;
+        loading.innerText = "Submitting your vote... please wait ⏳";
+
+        await contract.methods.vote(index).send({ from: wallet });
+
+        result.innerText = `✅ You voted for ${partyName}`;
+        loading.innerText = "";
+
+        await fetch("/mark_voted", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet, party_name: partyName }),
+        });
+
+        loadParties();
+      } catch (err) {
+        loading.innerText = "";
+        button.disabled = false;
+        alert("⚠️ You have already voted or transaction was rejected.");
+      }
+    }
+  </script>
+</body>
+
+</html>

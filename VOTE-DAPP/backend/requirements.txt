@@ -1,0 +1,6 @@
+Flask
+Flask-MySQLdb
+Flask-Mail
+python-dotenv
+requests
+sendgrid

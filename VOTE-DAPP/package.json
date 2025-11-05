@@ -1,0 +1,23 @@
+{
+    "name": "vote-dapp",
+    "version": "1.0.0",
+    "description": "Blockchain-based voting DApp with OTP, Aadhaar verification, and MetaMask integration using Flask, Web3.js, and Solidity.",
+    "main": "index.html",
+    "scripts": {
+      "start": "parcel index.html --open",
+      "build": "parcel build index.html"
+    },
+    "dependencies": {
+      "parcel-bundler": "^1.6.1",
+      "web3": "^1.10.0"
+    },
+    "devDependencies": {
+      "@babel/core": "7.2.0",
+      "typescript": "4.4.4"
+    },
+    "resolutions": {
+      "@babel/preset-env": "7.13.8"
+    },
+    "keywords": ["blockchain", "voting", "dapp", "ethereum", "metamask", "web3"]
+  }
+  

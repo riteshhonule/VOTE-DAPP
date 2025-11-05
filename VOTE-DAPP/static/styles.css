@@ -1,0 +1,184 @@
+/* Glassmorphic green theme
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #003300, #006600);
+  color: white;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-container {
+  width: 400px;
+  padding: 30px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+h1 {
+  color: #aaffaa;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 600;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.3);
+  color: #003300;
+  font-weight: 600;
+}
+
+button {
+  background: linear-gradient(90deg, #00cc66, #009944);
+  color: white;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #00ff88, #00cc66);
+}
+
+.party-card {
+  margin: 20px;
+  padding: 15px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.vote-btn {
+  background: linear-gradient(90deg, #00ff99, #00cc66);
+  color: #003300;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+} */
+
+/* Glassmorphic dark blue theme */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  /* Swapped green gradient for a deep, classy blue */
+  background: linear-gradient(135deg, #020617, #1e3a8a);
+  color: white;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-container {
+  width: 400px;
+  padding: 30px;
+  border-radius: 20px;
+  /* Refined background and added a subtle border for a sharper glass effect */
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-align: center;
+}
+
+h1 {
+  background: linear-gradient(90deg, #f6d365, #fda085);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 600;
+  /* Lighter text for better contrast on the dark bg */
+  color: #d1d5db;
+}
+
+input {
+  width: 90%;
+  padding: 16px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  /* Slightly more transparent background */
+  background: rgba(255, 255, 255, 0.2);
+  /* Changed text color to be light */
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Added placeholder styling for a complete look */
+input::placeholder {
+  color: #a5b4fc;
+}
+
+button {
+  /* Changed green gradient to a strong blue */
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  color: white;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  /* Updated hover gradient */
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+}
+
+.party-card {
+  margin: 20px;
+  padding: 15px;
+  border-radius: 15px;
+  /* More subtle background for nested glass */
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+}
+
+.vote-btn {
+  /* Updated gradient to match the new theme */
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  /* Changed text color from green to a dark blue for contrast */
+  color: #0f172a;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.vote-btn:hover {
+  opacity: 0.9;
+}
